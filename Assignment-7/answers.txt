@@ -1,0 +1,34 @@
+												Assignment 8
+
+
+
+Ques 1: What did you see in the execution plan for the “join in Spark” solution? Why was the execution so fast (and the memory usage so small)?
+Ans:
+
+
+
+Ques 2: What was the CREATE TABLE statement you used for the orders_parts table?
+Ans:
+
+
+Ques 3: What were the running times of the two tpch_orders_* programs on the tpch2 data on the cluster? These orderkeys have results in that data set: 2745315 12904674 5431585 31750567 16572929 28762529.
+Ans:
+
+
+Ques 4:Consider the logic that you would have to implement to maintain the denormalized data (assuming that the orders table had the part_names column in the main data set). Write a few sentences on what you'd have to do when inserting/updating/deleting data in this case.
+Ans:
+
+
+CREATE TABLE orders_parts (
+  orderkey int,
+  custkey int,
+  orderstatus text,
+  totalprice decimal,
+  orderdate date,
+  order_priority text,
+  clerk text,
+  ship_priority int,
+  comment text,
+  part_names set<text>,
+  PRIMARY KEY (orderkey)
+);

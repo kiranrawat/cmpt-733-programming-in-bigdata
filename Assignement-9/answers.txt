@@ -1,0 +1,143 @@
+												Assignment 9
+
+
+
+Question 1: What is your best guess for the slope and intercept of the streaming points being produced?
+Ans: My best guess for the slope and intercept was being around -51.xx and 45.xx as shown below:
+
+Best guess with xy-1 topic:
+
++-----------------+-----------------+
+|            slope|        intercept|
++-----------------+-----------------+
+|-51.3018369910545|45.16129233376728|
++-----------------+-----------------+
+
+
+
+
+Question 2:Is your streaming program's estimate of the slope and intercept getting better as the program runs? (That is: is the program aggregating all of the data from the start of time, or only those that have arrived since the last output?)
+Ans: In the beginning the values for slope and intercept were changing frequently. But, as the streaming is running for long time the slope and intercept were settling around -51.299 and 45.xxx .
+     The program is aggregating all of the data from the start of the time and producing the output. Below are few records:
+
+Batch: 29
++-----------------+-----------------+--------------------+-----------------+------+
+|           sum(x)|           sum(y)|             sum(xy)|          sum(x2)|sum(n)|
++-----------------+-----------------+--------------------+-----------------+------+
+|-656.175479888916|35280.71252441406|-3.30426773566406...|6440500.178231092|    36|
++-----------------+-----------------+--------------------+-----------------+------+
+
+-------------------------------------------
+Batch: 30
+-------------------------------------------
++-------------------+-----------------+--------------------+-----------------+------+
+|             sum(x)|           sum(y)|             sum(xy)|          sum(x2)|sum(n)|
++-------------------+-----------------+--------------------+-----------------+------+
+|-1247.8947792053223|65679.34924316406|-3.48414233566406...|6790631.907414591|    37|
++-------------------+-----------------+--------------------+-----------------+------+
+
+-------------------------------------------
+Slope and Intercept
+-------------------------------------------
++------------------+-----------------+
+|             slope|        intercept|
++------------------+-----------------+
+|-51.30000212125535|45.23830328728695|
++------------------+-----------------+
+
+
+Question 3:In the colour classification question, what were your validation scores for the RGB and LAB pipelines?
+Ans: In the colour classification question:
+     validation score for the RGB pipeline: 0.585907
+     validation score for the LAB pipeline: 0.719715
+
+
+Question 4:When predicting the tmax values, did you over-fit the training data (and for which training/validation sets)?
+Ans: When predicting the max values, I faced the overfitting problem with tmax-1 training dataset, because the rmse was comparatively too low for validation data and it(rmse) took a quite huge jump when I tested the trained model with tmax-test dataset. As per my understanding, this overfitting occurred because the model did not have much data to learn from or train on.
+
+For training dataset tmax-1:
+===========================
+
+r2 = 0.8785762617820088
+rmse = 4.239494710244497
+
+Checked the model trained with above dataset with tmax-test dataset:
+
+r2 = 0.3637475455415111
+rmse = 10.346344778610295
+
+When I trained my model with tmax-2 training dataset, I didn't see the overfitting issue as R^2 and rmse was consistent across my validation score and test score. 
+As my model never trained on the test data, so I can say it performed better and no overfitting happened in this scenario(below are the scores).
+
+For training dataset tmax-2:
+===========================
+
+r2 = 0.820746926354126
+rmse = 5.481560698919427
+
+Checked the model trained with above dataset with tmax-test dataset:
+
+r2 = 0.8015883074350568
+rmse = 5.777711365686459
+
+
+Question 5:What were your testing scores for your model with and without the “yesterday's temperature” feature?
+Ans:  
+
+Testing scores without the “yesterday's temperature” feature
+=============================================
+
+testing scores for my model trained on tmax-1:
+
+r2 = 0.3637475455415111
+rmse = 10.346344778610295
+
+testing scores for my model trained on tmax-2:
+
+r2 = 0.8015883074350568
+rmse = 5.777711365686459
+
+testing scores for my model trained on tmax-3:
+
+r2 = 0.805916014184108
+rmse = 5.71435296606897
+
+
+
+Testing scores with the yesterday temperature” feature:
+========================================
+
+
+testing scores for my model trained on tmax-1:
+
+r2 = 0.8265599406760579
+rmse = 5.384272919139133
+
+testing scores for my model trained on tmax-2:
+
+r2 = 0.9117549081409739
+rmse = 3.8405872732794197
+
+testing scores for my model trained on tmax-3:
+
+r2 = 0.9125548428030226
+rmse = 3.8231403370903667
+
+
+
+
+Question 6:If you're using a tree-based model, you'll find a .featureImportances property that describes the relative importance of each feature (code commented out in weather_test.py; if not, skip this question). Have a look with and without the “yesterday's temperature” feature: do the results make sense and suggest that your model is making decisions reasonably? With “yesterday's temperature”, is it just predicting “same as yesterday”?
+Ans: 
+
+With “yesterday's temperature” feature:
+(5,[0,1,2,3,4],[0.123471320411,0.100601382045,0.0868934146974,0.235334521394,0.453699361453])
+
+Without “yesterday's temperature” feature:
+(4,[0,1,2,3],[0.21350784278,0.141612419032,0.141421403043,0.503458335145])
+
+
+The relative importance of each feature tells us the correlation between each feature to output. It is clearly seen that the last feature is getting more importance and "yesterday's max" has much more correlation with my output as my "day" feature has. When we are not feature engineering , that time we can see that my "day" feature has more correlation to my output. 
+
+Hence, the result make sense and I can surely say that, my model is making decision reasonably with the help of newly added feature instead of predicting the same as yesterday. When the yesterday's temperature was 12 degree, my predicted temperature was close to 12 (11.60663963435185 with tmax-2 and 12.281669417133143 with tmax-1).
+
+

@@ -1,0 +1,34 @@
+﻿						Assignment 2
+
+
+1. In the WikipediaPopular class, it would be much more interesting to find the page that is most popular, not just the view count (as we did with Spark). What would be necessary to modify your class to do this? (You don't have to actually implement it.) 
+
+2. An RDD has many methods: it can do many more useful tricks than were at hand with MapReduce. Write a sentence or two to explain the difference between .map and .flatMap. Which is more like the MapReduce concept of mapping? 
+Ans:Map function applies to each element of RDD and creates a new RDD as a result. This operation also allows developer to dfine his own custom business logic which will be applied to all the elements in RDD.
+
+In flatmap operation, transformation operation applies to each element of RDD and returns a new RDD as a result.And here also a developer can defince his own business logic which will be applied to all the RDD elements.Flatmap flattens the return value of the transform function. Here flattens means to extract the elements of a sequence(in case of a sequence).
+
+Both are same in the way they take a line from input RDD and perform a function on it.The difference is that the .map function returns only one element, while .flatmap function can return a list of elements (0 or more) as an iterator.
+if for both operation input is an RDD of length N, map function will transform it to another RDD of same length (N) whereas flatmap function will transform it into anpothe RDD of length M.
+
+FlatMap example:
+
+sc.parallelize([2, 3, 4]).flatMap(lambda x: [x,x,x]).collect()
+output: (data is flattened here)
+[2, 2, 2, 3, 3, 3, 4, 4, 4]
+
+map example:
+sc.parallelize([1,2,3]).map(lambda x: [x,x,x]).collect()
+[[1, 1, 1], [2, 2, 2], [3, 3, 3]]
+
+3.Do the same for .reduce and .reduceByKey. Which is more like the MapReduce concept of reducing? 
+Ans: 
+
+
+4. When finding popular Wikipedia pages, the maximum number of page views is certainly unique, but the most popular page might be a tie. What would your improved Python implementation do if there were two pages with the same highest number of page views in an hour? What would be necessary to make your code find all of the pages views the maximum number of times? (Again, you don't have to actually implement this.) 
+Ans:
+
+
+
+
+

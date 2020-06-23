@@ -1,0 +1,123 @@
+												Assignment 5
+
+
+
+Question 1: In the Reddit averages execution plan, which fields were loaded? How was the average computed (and was a combiner-like step done)?
+Answer: Reddit averages execution plan was as below:
+
+== Physical Plan ==
+*(2) HashAggregate(keys=[subreddit#18], functions=[avg(score#16L)])
++- Exchange hashpartitioning(subreddit#18, 200)
+   +- *(1) HashAggregate(keys=[subreddit#18], functions=[partial_avg(score#16L)])
+      +- *(1) FileScan json [score#16L,subreddit#18] Batched: false, Format: JSON, Location: InMemoryFileIndex[hdfs://nml-cloud-149.cs.sfu.ca:8020/courses/732/reddit-1], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<score:bigint,subreddit:string>
+
+
+Here only required fields namely score and subreddit were loaded. Average was computed using aggregation operation(for sum and count). Yes, aggregation was a combiner like step, after which shuffling operation performed and finished.
+
+
+Question 2: What was the running time for your Reddit averages implementations in the five scenarios described above? How much difference did Python implementation make (PyPy vs the default CPython)? Why was it large for RDDs but not for DataFrames?
+Answer: Below are the running times for my Reddit averages implementations in the five scenarios described in assignment-5 page.
+
+Scenario : 1
+# MapReduce
+	real	1m28.811s
+	user	0m7.844s
+	sys	0m0.588s
+
+Scenario : 2
+# Spark DataFrames (with CPython)
+	real	1m50.600s
+	user	0m42.152s
+	sys	0m2.348s
+
+Scenario : 3
+# Spark RDDs (with CPython)
+	real	2m53.685s
+	user	0m19.304s
+	sys	0m1.476s
+
+Scenario : 4
+# Spark DataFrames (with PyPy)
+	real	1m28.812s
+	user	0m32.144s
+	sys	0m1.896s
+
+Scenario : 5
+# Spark RDDs (with PyPy)
+	real	1m31.904s
+	user	0m18.264s
+	sys	0m1.228s
+
+In my case, in comparison to Python implementation with CPython, PyPy reduced execution time by 22 secs for Spark data frames and 1 mins 22 secs for Spark RDDs.
+As noticed above, the time deduction was large in case of Spark Rdds with PyPy. The reason is that, in RDD most of the objects are Python objects and as PyPy is a fast alternative implementation of Python language, so it's highly compatible with python code and faster as well. Whereas data frames are more build in Scala code.  
+
+
+Question 3: How much of a difference did the broadcast hint make to the Wikipedia popular code's running time (and on what data set)?
+Answer: While running Wikipedia popular code on cluster, below are the running times:
+
+Pagecounts-1 (without broadcast join)
+
+	real	0m54.695s
+	user	0m40.700s
+	sys	0m2.592s
+
+
+Pagecounts-1 (broadcast join)
+
+	real	0m40.720s
+	user	0m36.784s
+	sys	0m2.356s
+
+
+Pagecounts-3 (without broadcast join)
+
+Execution time on cluster during less busy hours 
+
+	real	1m46.985s
+	user	0m39.540s
+	sys	0m2.196s
+
+Execution time on cluster during loaded hours 
+
+	real	3m33.626s
+	user	0m50.664s
+	sys	0m2.796s
+
+Pagecounts-3 (broadcast join)
+
+Execution time on cluster during less busy hours 
+
+	real	1m31.265s
+	user	0m30.840s
+	sys	0m1.600s
+
+Execution time on cluster during loaded hours 
+
+	real	4m31.740s
+	user	0m49.516s
+	sys	0m2.736s
+
+After noticing above execution times in both scenarios , I have observed below points:
+
+With pagecounts-1 input dataset, I have observed that the job is taking less execution time with broadcast join and taking more with normal join.
+
+But in case of larger data set pagecounts-3, I have observed two different points as below:
+
+i) When I executed the job on cluster in less busy hours, execution time was less with broadcast join.
+ii) When I executed the job on cluster in loaded hours, execution time was less with normal join.
+
+
+Question 4: How did the Wikipedia popular execution plan differ with and without the broadcast hint?
+Answer: I observed below difference in wikipedia popular execution plan with and without the broadcast hint:
+
+With the use of broadcast Hint, after finding max range of views, BroadcastExchange HashedRelationBroadcastMode happens, being followed by BroadcastHashJoin to join max ranges per date. Here with BroadcastHashJoin, shuffling operation would not performed.
+
+Without broadcast hint, once we get max range of views based on date, Exchange hashpartitioning happens, followed by SortMergeJoin. Here shuffling operation will be performed.
+
+
+Question 5: For the weather data question, did you prefer writing the “DataFrames + Python methods” style, or the “temp tables + SQL syntax” style form solving the problem? Which do you think produces more readable code?
+Answer: I think if the problem is simpler and requires less implementation, then writing “temp tables + SQL syntax” will be more readable and simple to understand. But if the problem is difficult and requires complex logic to get resolved then I would prefer python-method-call syntax to make it more readable and easy to understand.  
+
+As weather data question requires good amount of logic and steps to find the temperature range based on station and date, I found “DataFrames + Python methods” style much simpler to write.
+
+

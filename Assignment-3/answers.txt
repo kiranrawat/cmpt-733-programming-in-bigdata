@@ -1,0 +1,35 @@
+						Assignment 2
+
+
+1. What was wrong with the original wordcount-5 data set that made repartitioning worth it? Why did the program run faster after?
+Ans: The original wordcount-5 is a large sized data set and with the default no. of partitions it took a huge amount of time while executing the spark job. Repartitioning helped in creating equal-sized 8 partitions and it reduced the data size and made spark job run faster. Here with word count-5, no. of partitions increased to 8 and now all partitions have enough number of records which are distributed uniformly. With repartitioning you can reduce as well as increase the no. of partitions.    
+
+
+While running the job on cluster, below are the execution times the job taken without repartitioning or with it:
+	
+	with the default no. of partitions , running time was 10m8.480s.
+	With no. of partitions = 8 , running time was 4m21.767s.
+
+
+
+2. The same fix does not make this code run faster on the wordcount-3 data set. (It may be slightly slower?) Why? [For once, the answer is not “the data set is too small”.]
+Ans: With the repartitioning fix , spark job was slightly lower on wordcount-3.
+
+
+
+3. How could you modify the wordcount-5 input so that the word count code can process it and get the same results as fast as possible? (It's possible to get about another minute off the running time.)
+Ans: As we can see wordcount-5 data set contains 8 large files and looking upon the file's sizes , it is crystal clear that records are not evenly distributed in those files. When the spark job will run, files will be equally distributed with the no. of processors. In this process, due to different files sizes, small sized file will be processed in less time whereas processors with large files will still be doing their jobs. Hence, there will be an idol state for the processors allocated with small sized files and waiting for others to get their job done.
+
+If we distribute the records evenly in 8 files and repartitioning the RDD in 8, then each processors can have one file and all can complete the execution in the same time resulting in faster execution of job.
+
+
+4. When experimenting with the number of partitions while estimating Euler's constant, you likely didn't see much difference for a range of values, and chose the final value in your code somewhere in that range. What range of partitions numbers was “good” (on the desktop/laptop where you were testing)?
+Ans: 
+
+
+
+5. How much overhead does it seem like Spark adds to a job? How much speedup did PyPy get over the usual Python implementation?
+Ans:
+
+
+

@@ -1,0 +1,105 @@
+												Assignment 8
+												============
+
+Ques 1: What did you see in the execution plan for the "Join in Spark" solution? Why was the execution so fast (and the memory usage so small)?
+Ans: For "join in spark" solution, I can see PushedFilters in execution plan. PushedFilters reduces the data transfer between Cassandra and spark engine by removing unnescessary fields from table scan during filter operation. PushedFilters improves the performance and hence programs executes faster. 
+
+Here in below plan, PushedFilters is implicitly checking for the isnotnull() condition on orderkey and partkey values and indicating that the NotNull predicate will be pushed down for the column data in orderkey and partkey. Which should speed up the query as a full table scan will be avoided and memory usage will be small.
+
+Below is the execution plan I got with tpch4 dataset.
+
+== Physical Plan ==
+*(10) Sort [orderkey#0 ASC NULLS FIRST], true, 0
++- Exchange rangepartitioning(orderkey#0 ASC NULLS FIRST, 200)
+   +- ObjectHashAggregate(keys=[orderkey#0, totalprice#8], functions=[collect_set(name#55, 0, 0)])
+      +- Exchange hashpartitioning(orderkey#0, totalprice#8, 200)
+         +- ObjectHashAggregate(keys=[orderkey#0, totalprice#8], functions=[partial_collect_set(name#55, 0, 0)])
+            +- *(9) Project [orderkey#0, totalprice#8, name#55]
+               +- *(9) SortMergeJoin [partkey#25], [partkey#50], Inner
+                  :- *(6) Sort [partkey#25 ASC NULLS FIRST], false, 0
+                  :  +- Exchange hashpartitioning(partkey#25, 200)
+                  :     +- *(5) Project [orderkey#0, totalprice#8, partkey#25]
+                  :        +- *(5) SortMergeJoin [orderkey#0], [orderkey#19], Inner
+                  :           :- *(2) Sort [orderkey#0 ASC NULLS FIRST], false, 0
+                  :           :  +- Exchange hashpartitioning(orderkey#0, 200)
+                  :           :     +- *(1) Filter (cast(orderkey#0 as string) IN (151201,986499,28710,193734,810689) && isnotnull(orderkey#0))
+                  :           :        +- *(1) Scan org.apache.spark.sql.cassandra.CassandraSourceRelation@558ea6b5 [orderkey#0,totalprice#8] PushedFilters: [IsNotNull(orderkey)], ReadSchema: struct<orderkey:int,totalprice:decimal(38,18)>
+                  :           +- *(4) Sort [orderkey#19 ASC NULLS FIRST], false, 0
+                  :              +- Exchange hashpartitioning(orderkey#19, 200)
+                  :                 +- *(3) Filter ((cast(orderkey#19 as string) IN (151201,986499,28710,193734,810689) && isnotnull(orderkey#19)) && isnotnull(partkey#25))
+                  :                    +- *(3) Scan org.apache.spark.sql.cassandra.CassandraSourceRelation@5a3e74a5 [orderkey#19,partkey#25] PushedFilters: [IsNotNull(orderkey), IsNotNull(partkey)], ReadSchema: struct<orderkey:int,partkey:int>
+                  +- *(8) Sort [partkey#50 ASC NULLS FIRST], false, 0
+                     +- Exchange hashpartitioning(partkey#50, 200)
+                        +- *(7) Filter isnotnull(partkey#50)
+                           +- *(7) Scan org.apache.spark.sql.cassandra.CassandraSourceRelation@b20dec4 [partkey#50,name#55] PushedFilters: [IsNotNull(partkey)], ReadSchema: struct<partkey:int,name:string>
+
+
+Ques 2: What was the CREATE TABLE statement you used for the orders_parts table?
+Ans: Below is the CREATE TABLE statement.
+ 
+CREATE TABLE orders_parts (
+  orderkey int,
+  custkey int,
+  orderstatus text,
+  totalprice decimal,
+  orderdate date,
+  order_priority text,
+  clerk text,
+  ship_priority int,
+  comment text,
+  part_names set<text>,
+  PRIMARY KEY (orderkey)s
+);
+
+
+Ques 3: What were the running times of the two tpch_orders_* programs on the tpch2 data on the cluster? These orderkeys have results in that data set: 2745315 12904674 5431585 31750567 16572929 28762529.
+Ans: Below were the running times of the two tpch_orders_* programs on the tpch2 data on the cluster. For the given order keys 2745315 12904674 5431585 31750567 16572929 28762529.
+
+Running time for tpch_sorders_df.py
+     
+real	0m49.046s
+user	0m44.444s
+sys	0m2.592s
+
+Running time for tpch_orders_denorm.py
+
+real	0m43.883s
+user	0m29.432s
+sys	0m1.568s
+
+
+Ques 4:Consider the logic that you would have to implement to maintain the denormalized data (assuming that the orders table had the part_names column in the main data set). Write a few sentences on what you'd have to do when inserting/updating/deleting data in this case.
+Ans: Assuming that the orders table had the part_names column in the main data set, in this case to maintain the denormalized data ,we need to do below things while inserting/updating/deleting data:
+
+We know that part_names columns is of Set datatype, so we should take care of below cases while doing below operations:
+
+i) Inserting: 
+ 	a) When we insert data into the set, we should enclose the values in curly brackets. And always considering the fact that Set values must be unique.
+	b) And in Cassandra, you can not ever have more than one set of values for one primary key and that you will only see the last write.
+
+Query to insert values in a set:
+ 
+INSERT INTO orders_parts (orderkey, part_names)
+  VALUES(111, {'cream hot dodger peru green', 'deep firebrick slate dim misty'});
+
+
+ii) Updating:
+	a) If we want to update the set by removing some values or a single value from it, then we can do so by using UPDATE command with subtraction(-) operator.
+	b) If we want to update the set by adding some values or a single value from it, then we can use UPDATE command with addition(+) operator. And while adding an element in a set, 
+		if we don't use addition(+) operator, then existing values will be overwritten by the new value.
+
+Query to update the values in a set:
+
+UPDATE users
+  SET part_names = part_names + {' dim hot almond spring indian'} WHERE orderkey = '810689';
+
+
+iii) Deleting:
+	a) While deleting the values from a set, we have to keep in mind that a set needs to have at least one element, otherwise, Apache Cassandra cannot distinguish the set from a null value.
+
+	For example, below query will return null, if emails is an empty set like {}.
+        
+DELETE emails FROM users WHERE user_id = 'frodo';
+
+	
+
